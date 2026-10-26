@@ -1,0 +1,129 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--
+        Estilos propios encima del tema Fluent de Windows 11 (App.xaml, ThemeMode="System"). Todos los colores salen
+        de los recursos del tema (DynamicResource), así que siguen solos el modo claro u oscuro de Windows.
+    -->
+
+    <!-- Iconos de Windows 11 (Segoe Fluent Icons). -->
+    <Style x:Key="Icon" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource SymbolThemeFontFamily}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Escala tipográfica de Windows 11: Title 28 · Subtitle 20 · BodyStrong 14 · Body 14 · Caption 12. -->
+    <Style x:Key="PageTitle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="28" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style x:Key="SectionTitle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <!-- Encabezado de grupo dentro de una página (como «Sistema» o «Pantalla» en Configuración). -->
+    <Style x:Key="GroupHeader" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Margin" Value="2,20,0,8" />
+    </Style>
+
+    <Style x:Key="Secondary" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style x:Key="Caption" TargetType="TextBlock" BasedOn="{StaticResource Secondary}">
+        <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <!--
+        Franja de botones de los diálogos, como en los cuadros de diálogo de Windows 11: fondo distinto, borde arriba,
+        botones a la derecha. Va abajo en un DockPanel.
+    -->
+    <Style x:Key="DialogFooter" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource SolidBackgroundFillColorBaseBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="0,1,0,0" />
+        <Setter Property="Padding" Value="24,18" />
+    </Style>
+
+    <!-- Botón de una acción que borra o fuerza algo: texto e icono en rojo, sin llamar la atención como el principal. -->
+    <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Padding" Value="12,6" />
+        <Setter Property="MinWidth" Value="96" />
+        <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+    </Style>
+
+    <!-- Tarjeta: superficie un escalón por encima de la ventana, con borde fino. -->
+    <Style x:Key="Card" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16,14" />
+    </Style>
+
+    <!-- Tarjeta de una lista que reacciona al pasar el ratón (como las filas de Configuración). -->
+    <Style x:Key="InteractiveCard" TargetType="Border" BasedOn="{StaticResource Card}">
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorSecondaryBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Barra de información (avisos): fondo suave del color del aviso. -->
+    <Style x:Key="InfoBar" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource SystemFillColorCautionBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="12,10" />
+    </Style>
+
+    <Style x:Key="InfoBarAttention" TargetType="Border" BasedOn="{StaticResource InfoBar}">
+        <Setter Property="Background" Value="{DynamicResource SystemFillColorAttentionBackgroundBrush}" />
+    </Style>
+
+    <!-- Botón principal (uno por zona): el color de acento de Windows. -->
+    <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">
+        <Setter Property="Padding" Value="14,6" />
+        <Setter Property="MinWidth" Value="96" />
+        <Style.Triggers>
+            <!-- Con un acento gris en Windows, el botón desactivado casi no se distinguía del activo. -->
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.45" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Padding" Value="12,6" />
+    </Style>
+
+    <!--
+        Botón cuadrado solo con icono (p. ej. «⋯ Más acciones»). El icono va como contenido (TextBlock con estilo Icon):
+        si se cambiara la fuente del botón, su menú contextual la heredaría y el texto saldría como cuadrados.
+    -->
+    <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Width" Value="34" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <!-- Pastilla de estado: fondo suave, punto y texto del color del estado (lo fija cada vista con triggers). -->
+    <Style x:Key="StatusPill" TargetType="Border">
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Padding" Value="9,2,10,3" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SystemFillColorNeutralBackgroundBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+</ResourceDictionary>

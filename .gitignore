@@ -1,0 +1,9 @@
+bin/
+obj/
+.vs/
+*.user
+*.suo
+TestResults/
+artifacts/
+# Datos locales de desarrollo (CMA_HOME de pruebas)
+.cma-dev/

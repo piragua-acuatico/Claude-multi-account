@@ -1,0 +1,294 @@
+﻿<Window x:Class="ClaudeMultiAccount.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:ClaudeMultiAccount.App.ViewModels"
+        xmlns:c="clr-namespace:ClaudeMultiAccount.App.Controls"
+        Title="Claude Multi-Account"
+        Width="900" Height="600" MinWidth="680" MinHeight="400"
+        WindowStartupLocation="CenterScreen"
+        Language="es-ES"
+        FontSize="14">
+    <DockPanel Margin="28,20,28,16">
+        <!-- Cabecera: logo, título y acciones generales -->
+        <Grid DockPanel.Dock="Top" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Image Source="/Assets/app-256.png" Width="44" Height="44" Margin="0,0,14,0" VerticalAlignment="Center"
+                   RenderOptions.BitmapScalingMode="HighQuality" />
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Tus perfiles de Claude" Style="{StaticResource PageTitle}" />
+                <TextBlock Text="{Binding ClaudeSummary}" Style="{StaticResource Secondary}" Margin="0,2,0,0" />
+            </StackPanel>
+            <WrapPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
+                <Button x:Name="InstallButton" Click="OnInstall" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0" AutomationProperties.Name="Instalar en este equipo"
+                        Visibility="Collapsed" ToolTip="Instala la herramienta solo para tu usuario, sin permisos de administrador.">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE896;" Margin="0,0,8,0" />
+                        <TextBlock Text="Instalar en este equipo…" />
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding ShowBackupsCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"
+                        AutomationProperties.Name="Copias de seguridad"
+                        ToolTip="Copia y restaura la lista de perfiles y los ajustes de Claude Code (nunca sesiones ni credenciales).">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE83B;" Margin="0,0,8,0" />
+                        <TextBlock Text="Copias" />
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding ShowSharingInfoCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"
+                        AutomationProperties.Name="¿Qué comparte cada perfil?"
+                        ToolTip="Qué queda separado entre perfiles y qué es común (Git, SSH, archivos del proyecto…).">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE946;" Margin="0,0,8,0" />
+                        <TextBlock Text="Qué comparten" />
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding NewProfileCommand}" Style="{StaticResource PrimaryButton}"
+                        AutomationProperties.Name="Nuevo perfil"
+                        ToolTip="Crea un perfil con su propio Claude y su propia cuenta.">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE710;" Margin="0,0,8,0" />
+                        <TextBlock Text="Nuevo perfil" />
+                    </StackPanel>
+                </Button>
+            </WrapPanel>
+        </Grid>
+
+        <!-- Barra de estado: resultado de la última acción -->
+        <Border DockPanel.Dock="Bottom" BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}" BorderThickness="0,1,0,0"
+                Padding="0,10,0,0" Margin="0,12,0,0">
+            <StackPanel Orientation="Horizontal">
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding StatusMessage}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Hidden" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <TextBlock Style="{StaticResource Icon}" Text="&#xE946;" Margin="0,0,8,0"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                <TextBlock Text="{Binding StatusMessage}" Style="{StaticResource Secondary}" FontSize="13" AutomationProperties.LiveSetting="Polite" />
+            </StackPanel>
+        </Border>
+
+        <!-- Aviso de actualización de Claude Desktop -->
+        <c:Notice DockPanel.Dock="Top" Severity="Informational" Title="Claude Desktop se ha actualizado" Message="{Binding UpdateBanner}"
+                  Margin="0,0,0,12">
+            <c:Notice.Style>
+                <Style TargetType="c:Notice" BasedOn="{StaticResource {x:Type c:Notice}}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding UpdateBanner}" Value="{x:Null}">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </c:Notice.Style>
+            <Button Command="{Binding CheckCompatibilityCommand}" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left"
+                    AutomationProperties.Name="Comprobar compatibilidad"
+                    ToolTip="Comprueba, sin abrir ni cambiar nada, que cada perfil sigue encontrando sus carpetas.">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource Icon}" Text="&#xE9D5;" FontSize="12" Margin="0,0,8,0" />
+                    <TextBlock Text="Comprobar compatibilidad" />
+                </StackPanel>
+            </Button>
+        </c:Notice>
+
+        <!-- Avisos -->
+        <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding Notices}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <c:Notice Severity="Warning" Message="{Binding}" Margin="0,0,0,8" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+            <ItemsControl.Style>
+                <Style TargetType="ItemsControl">
+                    <Setter Property="Margin" Value="0,0,0,4" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Notices.Count}" Value="0">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ItemsControl.Style>
+        </ItemsControl>
+
+        <Grid>
+            <!-- Sin perfiles -->
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="460">
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding EmptyMessage}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <TextBlock Style="{StaticResource Icon}" Text="&#xE716;" FontSize="36" HorizontalAlignment="Center"
+                           Foreground="{DynamicResource TextFillColorTertiaryBrush}" Margin="0,0,0,12" />
+                <TextBlock Text="{Binding EmptyMessage}" Style="{StaticResource Secondary}" TextAlignment="Center" />
+            </StackPanel>
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Profiles}" AutomationProperties.Name="Lista de perfiles">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:ProfileItemViewModel}">
+                            <Border Style="{StaticResource InteractiveCard}" Margin="0,0,0,8" Padding="16,14,14,14">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Avatar: color e inicial del perfil -->
+                                    <Grid Width="42" Height="42" Margin="0,0,14,0" VerticalAlignment="Center">
+                                        <Ellipse Fill="{Binding Color}" />
+                                        <TextBlock Text="{Binding Initial}" Foreground="White" FontSize="18" FontWeight="SemiBold"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Grid>
+
+                                    <!-- Nombre y descripción -->
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                        <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding Description}" Style="{StaticResource Secondary}" FontSize="12"
+                                                   TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
+                                    </StackPanel>
+
+                                    <!-- Estado -->
+                                    <Border Grid.Column="2" Margin="0,0,16,0" ToolTip="{Binding StateDetail}">
+                                        <Border.Style>
+                                            <Style TargetType="Border" BasedOn="{StaticResource StatusPill}">
+                                                <Setter Property="TextElement.Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding State}" Value="{x:Static vm:ProfileDisplayState.Running}">
+                                                        <Setter Property="Background" Value="{DynamicResource SystemFillColorSuccessBackgroundBrush}" />
+                                                        <Setter Property="TextElement.Foreground" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding State}" Value="{x:Static vm:ProfileDisplayState.RunningOutsideTool}">
+                                                        <Setter Property="Background" Value="{DynamicResource SystemFillColorSuccessBackgroundBrush}" />
+                                                        <Setter Property="TextElement.Foreground" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding State}" Value="{x:Static vm:ProfileDisplayState.Starting}">
+                                                        <Setter Property="Background" Value="{DynamicResource SystemFillColorAttentionBackgroundBrush}" />
+                                                        <Setter Property="TextElement.Foreground" Value="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding State}" Value="{x:Static vm:ProfileDisplayState.Closing}">
+                                                        <Setter Property="Background" Value="{DynamicResource SystemFillColorAttentionBackgroundBrush}" />
+                                                        <Setter Property="TextElement.Foreground" Value="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding State}" Value="{x:Static vm:ProfileDisplayState.Error}">
+                                                        <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBackgroundBrush}" />
+                                                        <Setter Property="TextElement.Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Ellipse Width="7" Height="7" Margin="0,1,7,0" VerticalAlignment="Center"
+                                                     Fill="{Binding (TextElement.Foreground), RelativeSource={RelativeSource AncestorType=Border}}" />
+                                            <TextBlock Text="{Binding ShortStateLabel}" FontSize="12" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Acciones: una principal y el resto en «Más acciones» -->
+                                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <!-- «Abrir» en color de acento; «Traer al frente» (ya abierto) como botón normal. -->
+                                        <Button Command="{Binding OpenCommand}" Margin="0,0,8,0" MinWidth="140"
+                                                Style="{StaticResource PrimaryButton}"
+                                                Visibility="{Binding IsClosed, Converter={StaticResource BoolToVisibility}}"
+                                                ToolTip="{Binding OpenToolTip}" ToolTipService.ShowOnDisabled="True">
+                                            <AutomationProperties.Name>
+                                                <MultiBinding StringFormat="{}{0} «{1}»">
+                                                    <Binding Path="OpenLabel" />
+                                                    <Binding Path="Name" />
+                                                </MultiBinding>
+                                            </AutomationProperties.Name>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Style="{StaticResource Icon}" Text="&#xE768;" Margin="0,0,8,0" FontSize="12" />
+                                                <TextBlock Text="{Binding OpenLabel}" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Command="{Binding OpenCommand}" Margin="0,0,8,0" MinWidth="140"
+                                                Style="{StaticResource SecondaryButton}"
+                                                Visibility="{Binding IsOpen, Converter={StaticResource BoolToVisibility}}"
+                                                ToolTip="{Binding OpenToolTip}" ToolTipService.ShowOnDisabled="True">
+                                            <AutomationProperties.Name>
+                                                <MultiBinding StringFormat="{}{0} «{1}»">
+                                                    <Binding Path="OpenLabel" />
+                                                    <Binding Path="Name" />
+                                                </MultiBinding>
+                                            </AutomationProperties.Name>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Style="{StaticResource Icon}" Text="&#xE8A7;" Margin="0,0,8,0" FontSize="12" />
+                                                <TextBlock Text="{Binding OpenLabel}" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Style="{StaticResource IconButton}" Click="OnMoreActions"
+                                                AutomationProperties.Name="{Binding Name, StringFormat=Más acciones de «{0}»}" ToolTip="Más acciones">
+                                            <TextBlock Style="{StaticResource Icon}" Text="&#xE712;" />
+                                            <Button.ContextMenu>
+                                                <ContextMenu>
+                                                    <MenuItem Header="Editar perfil…" Command="{Binding EditCommand}"
+                                                              ToolTip="Cambia el nombre, el color, la inicial, el correo de referencia o las carpetas de trabajo.">
+                                                        <MenuItem.Icon>
+                                                            <TextBlock Style="{StaticResource Icon}" Text="&#xE70F;" />
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
+                                                    <MenuItem Header="Crear acceso directo…" Command="{Binding CreateShortcutCommand}"
+                                                              ToolTip="Crea un icono en el escritorio o en el menú Inicio que abre este perfil.">
+                                                        <MenuItem.Icon>
+                                                            <TextBlock Style="{StaticResource Icon}" Text="&#xE71B;" />
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
+                                                    <MenuItem Header="Cerrar…" Command="{Binding CloseCommand}"
+                                                              ToolTip="{Binding CloseToolTip}" ToolTipService.ShowOnDisabled="True">
+                                                        <MenuItem.Icon>
+                                                            <TextBlock Style="{StaticResource Icon}" Text="&#xE711;" />
+                                                        </MenuItem.Icon>
+                                                    </MenuItem>
+                                                    <Separator>
+                                                        <Separator.Style>
+                                                            <Style TargetType="Separator" BasedOn="{StaticResource {x:Static MenuItem.SeparatorStyleKey}}">
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsMain}" Value="True">
+                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Separator.Style>
+                                                    </Separator>
+                                                    <MenuItem Header="Quitar de la lista…" Command="{Binding RemoveCommand}"
+                                                              ToolTip="{Binding RemoveToolTip}" ToolTipService.ShowOnDisabled="True">
+                                                        <MenuItem.Icon>
+                                                            <TextBlock Style="{StaticResource Icon}" Text="&#xE74D;" />
+                                                        </MenuItem.Icon>
+                                                        <MenuItem.Style>
+                                                            <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsMain}" Value="True">
+                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </MenuItem.Style>
+                                                    </MenuItem>
+                                                </ContextMenu>
+                                            </Button.ContextMenu>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+    </DockPanel>
+</Window>

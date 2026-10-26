@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>ClaudeMultiAccount.Core</AssemblyName>
+    <RootNamespace>ClaudeMultiAccount.Core</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="ClaudeMultiAccount.Core.Tests" />
+  </ItemGroup>
+</Project>

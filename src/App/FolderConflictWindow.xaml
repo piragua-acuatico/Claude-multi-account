@@ -1,0 +1,48 @@
+﻿<Window x:Class="ClaudeMultiAccount.App.FolderConflictWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:ClaudeMultiAccount.App.Controls"
+        Title="{Binding Title}"
+        Width="620" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Language="es-ES" FontSize="14">
+    <!-- Qué pasa (aviso), qué archivos se comparten y dos caminos, con el recomendado primero. -->
+    <DockPanel>
+        <Border DockPanel.Dock="Bottom" Style="{StaticResource DialogFooter}">
+            <Button Content="Cancelar" IsCancel="True" MinWidth="110" HorizontalAlignment="Right" Style="{StaticResource SecondaryButton}" />
+        </Border>
+
+        <StackPanel Margin="24,24,24,22">
+            <TextBlock Text="{Binding Title}" Style="{StaticResource SectionTitle}" />
+            <TextBlock Text="{Binding Explanation}" Style="{StaticResource Secondary}" Margin="0,8,0,0" LineHeight="21" />
+
+            <c:Notice Severity="Warning" Title="Otro perfil abierto usa esta carpeta" Margin="0,16,0,0">
+                <ItemsControl ItemsSource="{Binding ConflictLines}" Margin="0,-6,0,0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </c:Notice>
+
+            <c:Notice Severity="Informational" Title="Archivos del proyecto que leen todas las cuentas" Margin="0,8,0,0"
+                      Visibility="{Binding HasSharedFiles, Converter={StaticResource BoolToVisibility}}">
+                <ItemsControl ItemsSource="{Binding SharedFileLines}" Margin="0,-6,0,0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </c:Notice>
+
+            <TextBlock Text="¿Cómo quieres abrirlo?" Style="{StaticResource GroupHeader}" />
+            <c:OptionCard Icon="&#xE8C8;" Header="Crear una copia de trabajo y abrir (recomendado)" Description="{Binding WorktreeText}"
+                          Click="OnCreateWorktree" IsDefault="True" IsEnabled="{Binding CanCreateWorktree}" />
+            <c:OptionCard Icon="&#xE8E5;" Header="Abrir en la misma carpeta"
+                          Description="Los dos Claude podrán cambiar los mismos archivos a la vez: evita trabajar en los dos al mismo tiempo."
+                          Click="OnOpenAnyway" Margin="0,8,0,0" />
+        </StackPanel>
+    </DockPanel>
+</Window>

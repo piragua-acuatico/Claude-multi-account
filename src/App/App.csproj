@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>true</UseWPF>
+    <!-- Solo para el icono de la bandeja (NotifyIcon); viene con .NET, no es un paquete. -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>ClaudeMA</AssemblyName>
+    <RootNamespace>ClaudeMultiAccount.App</RootNamespace>
+    <!-- Icono del exe (barra de tareas, Explorador, Alt+Tab). Logo de la herramienta. -->
+    <ApplicationIcon>Assets/app.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- El mismo archivo sirve para la ventana y la bandeja: cambiar el logo es cambiar solo este .ico. -->
+    <Resource Include="Assets/app.ico" />
+    <!-- Logo de la cabecera de la ventana principal. -->
+    <Resource Include="Assets/app-256.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Windows Forms solo se usa con su nombre completo, para no chocar con WPF (Application, MessageBox...). -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="ClaudeMultiAccount.App.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- La lista de versiones probadas viaja dentro del exe: una sola fuente, docs/tested-versions.json. -->
+    <EmbeddedResource Include="..\..\docs\tested-versions.json" LogicalName="tested-versions.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj" />
+  </ItemGroup>
+</Project>

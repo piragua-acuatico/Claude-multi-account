@@ -1,0 +1,180 @@
+﻿<Window x:Class="ClaudeMultiAccount.App.BackupsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:ClaudeMultiAccount.App.Controls"
+        Title="Copias de seguridad"
+        Width="900" Height="620" MinWidth="700" MinHeight="460"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Language="es-ES" FontSize="14">
+    <Window.Resources>
+        <!-- Cada copia, como una tarjeta seleccionable: la elegida lleva el borde del color de acento. -->
+        <Style x:Key="BackupItem" TargetType="ListBoxItem">
+            <Setter Property="Margin" Value="0,0,0,6" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="AutomationProperties.Name" Value="{Binding Label}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Chrome" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="6" Padding="14,10">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource CardBackgroundFillColorSecondaryBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+                                <Setter TargetName="Chrome" Property="BorderThickness" Value="2" />
+                                <Setter TargetName="Chrome" Property="Padding" Value="13,9" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <DockPanel>
+        <Border DockPanel.Dock="Bottom" Style="{StaticResource DialogFooter}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{Binding Message}" Style="{StaticResource Secondary}" VerticalAlignment="Center" Margin="0,0,16,0"
+                           AutomationProperties.LiveSetting="Polite" />
+                <Button Grid.Column="1" Content="Cerrar" IsCancel="True" MinWidth="110" Style="{StaticResource SecondaryButton}" />
+            </Grid>
+        </Border>
+
+        <Grid Margin="24,24,24,20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300" />
+                <ColumnDefinition Width="20" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Cabecera -->
+            <Grid Grid.ColumnSpan="3" Margin="0,0,0,18">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="Copias de seguridad" Style="{StaticResource SectionTitle}" />
+                    <TextBlock Text="{Binding WhatIsCopied}" Style="{StaticResource Caption}" Margin="0,6,0,0" />
+                    <TextBlock Text="{Binding FolderText}" Style="{StaticResource Caption}" Margin="0,2,0,0" />
+                </StackPanel>
+                <Button Grid.Column="1" Command="{Binding CreateCommand}" Style="{StaticResource PrimaryButton}" VerticalAlignment="Top"
+                        Margin="16,0,0,0" AutomationProperties.Name="Crear copia ahora">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE710;" FontSize="12" Margin="0,0,8,0" />
+                        <TextBlock Text="Crear copia ahora" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <!-- Lista de copias -->
+            <DockPanel Grid.Row="1">
+                <TextBlock DockPanel.Dock="Top" Text="Copias" Style="{StaticResource GroupHeader}" Margin="2,0,0,8" />
+                <Grid>
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="12">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Backups.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE81C;" FontSize="32" HorizontalAlignment="Center"
+                                   Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                        <TextBlock Text="Todavía no hay ninguna copia" HorizontalAlignment="Center" Margin="0,10,0,0" />
+                        <TextBlock Text="Pulsa «Crear copia ahora» para guardar la primera." Style="{StaticResource Caption}"
+                                   HorizontalAlignment="Center" TextAlignment="Center" Margin="0,4,0,0" />
+                    </StackPanel>
+                    <ListBox ItemsSource="{Binding Backups}" SelectedItem="{Binding Selected}" AutomationProperties.Name="Copias"
+                             BorderThickness="0" Background="Transparent" ItemContainerStyle="{StaticResource BackupItem}"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Style="{StaticResource Icon}" Text="&#xE81C;" FontSize="18" Margin="0,2,12,0" VerticalAlignment="Top"
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding Label}" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding Detail}" Style="{StaticResource Caption}" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </DockPanel>
+
+            <!-- Qué cambiaría al restaurar la copia elegida -->
+            <DockPanel Grid.Row="1" Grid.Column="2">
+                <TextBlock DockPanel.Dock="Top" Text="Qué cambiaría al restaurar" Style="{StaticResource GroupHeader}" Margin="2,0,0,8" />
+                <Button DockPanel.Dock="Bottom" Command="{Binding RestoreCommand}" HorizontalAlignment="Right" Margin="0,12,0,0"
+                        Style="{StaticResource SecondaryButton}" AutomationProperties.Name="Restaurar lo marcado">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE777;" FontSize="12" Margin="0,0,8,0" />
+                        <TextBlock Text="Restaurar lo marcado…" />
+                    </StackPanel>
+                </Button>
+                <ItemsControl DockPanel.Dock="Bottom" ItemsSource="{Binding Skipped}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <c:Notice Severity="Warning" Message="{Binding}" Margin="0,8,0,0" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Border Style="{StaticResource Card}" Padding="6">
+                    <Grid>
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="16">
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Rows.Count}" Value="0">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE8A5;" FontSize="28" HorizontalAlignment="Center"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                            <TextBlock Text="Elige una copia de la lista para ver qué cambiaría." Style="{StaticResource Secondary}"
+                                       TextAlignment="Center" Margin="0,8,0,0" />
+                        </StackPanel>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding Rows}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding IsSelected}" IsEnabled="{Binding CanSelect}" Margin="10,8">
+                                            <StackPanel Margin="4,0,0,0">
+                                                <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+                                                <TextBlock Text="{Binding StateLabel}" Style="{StaticResource Caption}" Margin="0,2,0,0" />
+                                            </StackPanel>
+                                        </CheckBox>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </DockPanel>
+        </Grid>
+    </DockPanel>
+</Window>

@@ -1,0 +1,22 @@
+<Window x:Class="ClaudeMultiAccount.App.ShortcutLocationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:ClaudeMultiAccount.App.Controls"
+        Title="Acceso directo"
+        Width="500" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Language="es-ES" FontSize="14">
+    <DockPanel>
+        <Border DockPanel.Dock="Bottom" Style="{StaticResource DialogFooter}">
+            <Button Content="Cancelar" IsCancel="True" MinWidth="110" HorizontalAlignment="Right" Style="{StaticResource SecondaryButton}" />
+        </Border>
+        <StackPanel Margin="24,24,24,22">
+            <TextBlock x:Name="Question" Style="{StaticResource SectionTitle}" />
+            <TextBlock Style="{StaticResource Secondary}" Margin="0,8,0,18"
+                       Text="El acceso directo abre el perfil con Claude Multi-Account, así que sigue funcionando cuando Claude se actualiza." />
+            <c:OptionCard Icon="&#xE7F4;" Header="Escritorio" Description="Un icono en tu escritorio." Click="OnDesktop" IsDefault="True" />
+            <c:OptionCard Icon="&#xE8FC;" Header="Menú Inicio" Description="Aparecerá al buscarlo en Inicio, junto a tus programas."
+                          Click="OnStartMenu" Margin="0,8,0,0" />
+        </StackPanel>
+    </DockPanel>
+</Window>

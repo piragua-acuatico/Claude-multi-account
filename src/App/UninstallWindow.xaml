@@ -1,0 +1,77 @@
+<Window x:Class="ClaudeMultiAccount.App.UninstallWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:ClaudeMultiAccount.App.Controls"
+        Title="Desinstalar Claude Multi-Account"
+        Width="620" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen" Topmost="True"
+        Language="es-ES" FontSize="14">
+    <!-- Qué se quita y qué no se toca, cada cosa en su tarjeta; el botón que desinstala va en rojo. -->
+    <DockPanel>
+        <Border DockPanel.Dock="Bottom" Style="{StaticResource DialogFooter}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Cancelar" IsCancel="True" IsDefault="True" MinWidth="110" Margin="0,0,8,0" Style="{StaticResource SecondaryButton}" />
+                <Button MinWidth="110" Click="OnUninstall" Style="{StaticResource DangerButton}" AutomationProperties.Name="Desinstalar">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE74D;" FontSize="12" Margin="0,0,8,0" />
+                        <TextBlock Text="Desinstalar" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <StackPanel Margin="24,24,24,22">
+            <TextBlock Text="Desinstalar Claude Multi-Account" Style="{StaticResource SectionTitle}" />
+            <TextBlock Style="{StaticResource Secondary}" Margin="0,8,0,0" LineHeight="21"
+                       Text="Claude Desktop sigue instalado y tus perfiles abiertos siguen abiertos." />
+
+            <TextBlock Text="Se quitará" Style="{StaticResource GroupHeader}" />
+            <Border Style="{StaticResource Card}" Padding="16,12">
+                <StackPanel>
+                    <ItemsControl ItemsSource="{Binding WillRemove}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,3">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Style="{StaticResource Icon}" Text="&#xE711;" FontSize="12" Margin="0,4,12,0" VerticalAlignment="Top"
+                                               Foreground="{DynamicResource SystemFillColorCriticalBrush}" />
+                                    <TextBlock Grid.Column="1" Text="{Binding}" TextWrapping="Wrap" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Border BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="0,1,0,0" Margin="-16,10,-16,0" Padding="16,12,16,0">
+                        <CheckBox IsChecked="{Binding DeleteToolData}">
+                            <TextBlock Text="{Binding ToolDataText}" TextWrapping="Wrap" Margin="4,0,0,0" />
+                        </CheckBox>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="No se toca: tus Claude, sus sesiones y sus chats" Style="{StaticResource GroupHeader}" />
+            <Border Style="{StaticResource Card}" Padding="16,12">
+                <ItemsControl ItemsSource="{Binding KeptClaudeFolders}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Style="{StaticResource Icon}" Text="&#xE73E;" FontSize="12" Margin="0,3,12,0" VerticalAlignment="Top"
+                                           Foreground="{DynamicResource SystemFillColorSuccessBrush}" />
+                                <TextBlock Grid.Column="1" Text="{Binding}" FontFamily="Cascadia Mono, Consolas" FontSize="12" TextWrapping="Wrap" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Border>
+
+            <c:Notice Severity="Informational" Margin="0,12,0,0"
+                      Message="Si quieres borrar las carpetas de un perfil aislado, hazlo tú a mano cuando estés seguro." />
+        </StackPanel>
+    </DockPanel>
+</Window>

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "claudeDesktop": [
+    {
+      "version": "2.37337.1.0",
+      "install": "msix",
+      "claudeCode": "2.1.295",
+      "testedOn": "2026-10-15",
+      "evidence": "Primeras pruebas reales: dos cuentas abiertas a la vez, cada una con su sesión y su configuración de Claude Code",
+      "result": "ok"
+    },
+    {
+      "version": "2.42304.0.0",
+      "install": "msix",
+      "testedOn": "2026-10-17",
+      "evidence": "Pruebas de aceptación T-01…T-08 y T-10…T-14 con dos cuentas (Max y Pro), comprobando el correo de cada una en Ajustes",
+      "result": "ok"
+    },
+    {
+      "version": "3.6556.2.0",
+      "install": "msix",
+      "testedOn": "2026-10-26",
+      "evidence": "Prueba T-09: aviso de actualización y comprobación de compatibilidad correctas; los dos perfiles se abren y se traen al frente",
+      "result": "ok"
+    }
+  ]
+}

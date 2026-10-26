@@ -1,0 +1,27 @@
+<Window x:Class="ClaudeMultiAccount.App.MessageWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Width="520" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Language="es-ES" FontSize="14">
+    <!-- Como un cuadro de diálogo de Windows 11: icono y título, texto, y la franja de botones abajo. -->
+    <DockPanel>
+        <Border DockPanel.Dock="Bottom" Style="{StaticResource DialogFooter}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="YesButton" Content="Sí" MinWidth="110" Margin="0,0,8,0" Click="OnYes" Style="{StaticResource SecondaryButton}" />
+                <Button x:Name="NoButton" Content="No" MinWidth="110" IsCancel="True" IsDefault="True" Click="OnNo" Style="{StaticResource SecondaryButton}" />
+            </StackPanel>
+        </Border>
+        <Grid Margin="24,24,24,22">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="Symbol" Style="{StaticResource Icon}" FontSize="28" Margin="0,2,18,0" VerticalAlignment="Top" />
+            <StackPanel Grid.Column="1">
+                <TextBlock x:Name="Heading" Style="{StaticResource SectionTitle}" />
+                <TextBlock x:Name="Body" TextWrapping="Wrap" Margin="0,10,0,0" LineHeight="21" />
+            </StackPanel>
+        </Grid>
+    </DockPanel>
+</Window>
