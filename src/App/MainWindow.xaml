@@ -38,6 +38,14 @@
                         <TextBlock Text="Copias" />
                     </StackPanel>
                 </Button>
+                <Button Command="{Binding ShowMessagesCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"
+                        AutomationProperties.Name="Mensajes entre cuentas"
+                        ToolTip="Que tus cuentas se pasen información desde los chats de Code.">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE8BD;" Margin="0,0,8,0" />
+                        <TextBlock Text="Mensajes" />
+                    </StackPanel>
+                </Button>
                 <Button Command="{Binding ShowSharingInfoCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"
                         AutomationProperties.Name="¿Qué comparte cada perfil?"
                         ToolTip="Qué queda separado entre perfiles y qué es común (Git, SSH, archivos del proyecto…).">

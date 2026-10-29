@@ -3,6 +3,7 @@ using ClaudeMultiAccount.App.Services;
 using ClaudeMultiAccount.App.ViewModels;
 using ClaudeMultiAccount.Core.Install;
 using ClaudeMultiAccount.Core.Launch;
+using ClaudeMultiAccount.Core.Messaging;
 using ClaudeMultiAccount.Core.Processes;
 using ClaudeMultiAccount.Core.Profiles;
 using ClaudeMultiAccount.Core.Shortcuts;
@@ -276,6 +277,43 @@ internal sealed class FakeProfileService : IProfileService
         return path;
     }
 
+    public bool MessagingEnabled => Document.MessagingEnabled;
+
+    public string MailboxFolder => @"C:\buzon-de-prueba";
+
+    public List<MailboxEntry> Messages { get; } = [];
+
+    public List<string> MessagingProblems { get; } = [];
+
+    public int MessagingSyncs { get; private set; }
+
+    public IReadOnlyList<string> SetMessaging(bool enabled)
+    {
+        Document.MessagingEnabled = enabled;
+        return MessagingProblems;
+    }
+
+    public IReadOnlyList<string> SyncMessaging()
+    {
+        MessagingSyncs++;
+        return Document.MessagingEnabled ? MessagingProblems : [];
+    }
+
+    public IReadOnlyList<MailboxEntry> MessageHistory(int max) => Messages.Take(max).ToList();
+
+    public List<MailboxMessage> Unread { get; } = [];
+
+    public IReadOnlyList<MailboxMessage> UnreadMessages() => Unread;
+
+    public List<OpenedChat> ChatsToOpen { get; } = [];
+
+    public IReadOnlyList<OpenedChat> OpenChatsForNewMessages(DateTime nowUtc)
+    {
+        var opened = ChatsToOpen.ToList();
+        ChatsToOpen.Clear();
+        return opened;
+    }
+
     private void ThrowIfSaveFails()
     {
         if (SaveError is not null)
@@ -347,6 +385,10 @@ internal sealed class FakeDialogService(bool answer) : IDialogService
     public void ShowCompatibilityReport(CompatibilityReportViewModel report) => Reports.Add(report);
 
     public void ShowBackups(BackupsViewModel backups) => BackupWindows.Add(backups);
+
+    public List<MessagesViewModel> MessageWindows { get; } = [];
+
+    public void ShowMessages(MessagesViewModel messages) => MessageWindows.Add(messages);
 
     public FolderConflictChoice ResolveFolderConflict(FolderConflictViewModel warning)
     {

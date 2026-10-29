@@ -9,7 +9,7 @@ public class InstanceMessageTests
 {
     [Theory]
     [InlineData(null, "show")]
-    [InlineData("9cff3686-46fb-4ee4-98a3-04aa62d21dec", "launch 9cff3686-46fb-4ee4-98a3-04aa62d21dec")]
+    [InlineData("3f2a9c1e-7b4d-4e8a-9f60-2d5c8b1a7e43", "launch 3f2a9c1e-7b4d-4e8a-9f60-2d5c8b1a7e43")]
     [InlineData("Claude Pro", "launch Claude Pro")]
     public void SerializeAndParse_RoundTrip(string? profile, string wire)
     {

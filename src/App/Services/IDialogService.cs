@@ -33,6 +33,8 @@ public interface IDialogService
 
     /// <summary>Ventana de copias de seguridad.</summary>
     void ShowBackups(BackupsViewModel backups);
+
+    void ShowMessages(MessagesViewModel messages);
 }
 
 public sealed class MessageBoxDialogService : IDialogService
@@ -66,6 +68,8 @@ public sealed class MessageBoxDialogService : IDialogService
     public void ShowCompatibilityReport(CompatibilityReportViewModel report) => _ = ModalWindow.Show(new CompatibilityReportWindow(report));
 
     public void ShowBackups(BackupsViewModel backups) => _ = ModalWindow.Show(new BackupsWindow(backups));
+
+    public void ShowMessages(MessagesViewModel messages) => _ = ModalWindow.Show(new MessagesWindow(messages));
 
     public void ShowSharingInfo(SharingInfoViewModel info)
     {

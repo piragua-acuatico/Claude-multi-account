@@ -5,6 +5,7 @@ using ClaudeMultiAccount.Core.Abstractions;
 using ClaudeMultiAccount.Core.Install;
 using ClaudeMultiAccount.Core.Launch;
 using ClaudeMultiAccount.Core.Logging;
+using ClaudeMultiAccount.Core.Messaging;
 using ClaudeMultiAccount.Core.Paths;
 using ClaudeMultiAccount.Core.Processes;
 using ClaudeMultiAccount.Core.Profiles;
@@ -73,6 +74,11 @@ internal static class Program
 
             var command = args[0].ToLowerInvariant();
             var rest = args.Skip(1).ToArray();
+            if (command == "mensaje")
+            {
+                // Sus opciones llevan valor (--para "Claude Pro"): se interpretan aparte.
+                return new MessageCommands(_store, new Mailbox(_paths.MailboxDir), _env).Run(rest);
+            }
             string[] options = command switch
             {
                 "close" => ["--forzar", "--force"],
@@ -142,7 +148,10 @@ internal static class Program
                                                    Claude Multi-Account al abrirse). --simular solo lo muestra.
 
                 Los perfiles nuevos se crean en Claude Multi-Account: su primer inicio de sesión necesita el asistente.
+
+                Mensajes entre cuentas (los usa cada Claude cuando se activan en Claude Multi-Account):
                 """);
+            Console.WriteLine(MessageCommands.HelpText);
         }
 
         private ProfileDocument LoadOrWarn()

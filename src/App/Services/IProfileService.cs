@@ -1,6 +1,7 @@
 using ClaudeMultiAccount.Core.Backup;
 using ClaudeMultiAccount.Core.Install;
 using ClaudeMultiAccount.Core.Launch;
+using ClaudeMultiAccount.Core.Messaging;
 using ClaudeMultiAccount.Core.Processes;
 using ClaudeMultiAccount.Core.Profiles;
 using ClaudeMultiAccount.Core.Shortcuts;
@@ -8,6 +9,9 @@ using ClaudeMultiAccount.Core.Updates;
 using ClaudeMultiAccount.Core.Workspace;
 
 namespace ClaudeMultiAccount.App.Services;
+
+/// <summary>Resultado de abrir un chat nuevo para un mensaje: el aviso para la bandeja.</summary>
+public sealed record OpenedChat(string MessageId, string Notice);
 
 /// <summary>
 /// Lo que la ventana necesita del núcleo. Solo delega en ProfileStore, InstallLocator, ProcessMonitor y
@@ -105,4 +109,31 @@ public interface IProfileService
 
     /// <summary>Crea un acceso directo que abre el perfil con la herramienta. Devuelve su ruta para mostrar.</summary>
     string CreateShortcut(Guid profileId, ShortcutLocation location);
+
+    /// <summary>Si están activados los mensajes entre cuentas.</summary>
+    bool MessagingEnabled { get; }
+
+    /// <summary>Carpeta del buzón, para vigilar si llegan mensajes.</summary>
+    string MailboxFolder { get; }
+
+    /// <summary>
+    /// Activa o desactiva los mensajes entre cuentas: pone o quita el hook y la skill en cada perfil.
+    /// Devuelve los problemas (un perfil cuyo settings.json no se pudo leer, por ejemplo).
+    /// </summary>
+    IReadOnlyList<string> SetMessaging(bool enabled);
+
+    /// <summary>Con los mensajes activados, deja el hook y la skill al día (ruta de cma.exe, perfiles nuevos o renombrados).</summary>
+    IReadOnlyList<string> SyncMessaging();
+
+    /// <summary>Mensajes entre cuentas, del más nuevo al más antiguo.</summary>
+    IReadOnlyList<MailboxEntry> MessageHistory(int max);
+
+    /// <summary>Mensajes que todavía no se han entregado en ningún chat.</summary>
+    IReadOnlyList<MailboxMessage> UnreadMessages();
+
+    /// <summary>
+    /// Abre un chat de Code nuevo, con el mensaje escrito, en el perfil que lo recibe (solo mensajes recientes que lo
+    /// piden; cada uno una vez). Devuelve lo que se abrió o no se pudo abrir, para avisar al usuario.
+    /// </summary>
+    IReadOnlyList<OpenedChat> OpenChatsForNewMessages(DateTime nowUtc);
 }

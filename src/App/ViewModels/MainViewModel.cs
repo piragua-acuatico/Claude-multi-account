@@ -37,6 +37,7 @@ public sealed class MainViewModel : ObservableObject
     private TestedVersions? _testedVersions;
     private List<Profile> _lastProfiles = [];
     private bool _refreshing;
+    private readonly HashSet<string> _notifiedMessages = [];
     private string _claudeSummary = "Buscando Claude Desktop…";
     private string? _statusMessage;
     private string? _emptyMessage;
@@ -55,11 +56,17 @@ public sealed class MainViewModel : ObservableObject
         ShowSharingInfoCommand = new RelayCommand(ShowSharingInfo);
         CheckCompatibilityCommand = new AsyncRelayCommand(CheckCompatibilityAsync);
         ShowBackupsCommand = new RelayCommand(ShowBackups);
+        ShowMessagesCommand = new RelayCommand(ShowMessages);
     }
 
     public AsyncRelayCommand CheckCompatibilityCommand { get; }
 
     public RelayCommand ShowBackupsCommand { get; }
+
+    public RelayCommand ShowMessagesCommand { get; }
+
+    /// <summary>Texto para la notificación de Windows cuando un perfil deja un mensaje a otro.</summary>
+    public event Action<string>? MessageArrived;
 
     /// <summary>Aviso de actualización o de versión no probada, con su botón de comprobar; null si no hay nada que decir.</summary>
     public string? UpdateBanner
@@ -98,6 +105,9 @@ public sealed class MainViewModel : ObservableObject
         StatusMessage = report.AllOk ? "Comprobación de compatibilidad: todo bien." : "Comprobación de compatibilidad: hay algo que revisar.";
         await RefreshAsync();
     }
+
+    /// <summary>Ventana de mensajes entre cuentas.</summary>
+    public void ShowMessages() => _dialogs.ShowMessages(new MessagesViewModel(_service));
 
     /// <summary>Ventana de copias de seguridad. Al cerrarla se vuelve a leer todo por si se restauró algo.</summary>
     public void ShowBackups()
@@ -172,6 +182,20 @@ public sealed class MainViewModel : ObservableObject
 
         await RefreshAsync();
 
+        // Con los mensajes activados, el hook de cada perfil apunta a esta copia de cma.exe (puede haberse
+        // instalado o movido) y los perfiles nuevos o renombrados quedan al día.
+        try
+        {
+            if (await Task.Run(_service.SyncMessaging) is { Count: > 0 } problems)
+            {
+                StatusMessage = "Mensajes entre cuentas: " + problems[0];
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ProfileStoreException)
+        {
+            StatusMessage = "No se pudieron preparar los mensajes entre cuentas: " + ex.Message;
+        }
+
         if (options.LaunchProfile is { } requested)
         {
             await LaunchRequestedAsync(requested);
@@ -205,11 +229,36 @@ public sealed class MainViewModel : ObservableObject
             while (await timer.WaitForNextTickAsync(cancellation))
             {
                 await RefreshAsync();
+                await CheckNewMessagesAsync();
             }
         }
         catch (OperationCanceledException)
         {
             // La ventana se cerró.
+        }
+    }
+
+    /// <summary>Avisa una vez de cada mensaje que un perfil deja a otro (aún sin entregar).</summary>
+    public async Task CheckNewMessagesAsync()
+    {
+        try
+        {
+            // Primero se abren los chats nuevos que piden los mensajes; esos ya avisan de por sí.
+            var opened = await Task.Run(() => _service.OpenChatsForNewMessages(_utcNow()));
+            foreach (var chat in opened.Where(c => _notifiedMessages.Add(c.MessageId)))
+            {
+                MessageArrived?.Invoke(chat.Notice);
+            }
+            var unread = await Task.Run(_service.UnreadMessages);
+            foreach (var message in unread.Where(m => _notifiedMessages.Add(m.Id)))
+            {
+                MessageArrived?.Invoke(
+                    $"«{message.FromName}» dejó un mensaje para «{message.ToName}». Lo recibirá al escribirle en un chat de Code.");
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // Se vuelve a mirar en la siguiente vuelta.
         }
     }
 

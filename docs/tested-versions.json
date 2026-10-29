@@ -22,6 +22,13 @@
       "testedOn": "2026-10-26",
       "evidence": "Prueba T-09: aviso de actualización y comprobación de compatibilidad correctas; los dos perfiles se abren y se traen al frente",
       "result": "ok"
+    },
+    {
+      "version": "4.29.0.0",
+      "install": "msix",
+      "testedOn": "2026-10-29",
+      "evidence": "Los dos perfiles abiertos a la vez con su cuenta; mensajes entre cuentas: hooks, skills y chats de Code nuevos con claude://code/new en la carpeta pedida",
+      "result": "ok"
     }
   ]
 }

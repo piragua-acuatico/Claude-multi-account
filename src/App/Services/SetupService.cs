@@ -4,6 +4,7 @@ using System.Reflection;
 using ClaudeMultiAccount.App.Tray;
 using ClaudeMultiAccount.Core.Abstractions;
 using ClaudeMultiAccount.Core.Logging;
+using ClaudeMultiAccount.Core.Messaging;
 using ClaudeMultiAccount.Core.Native;
 using ClaudeMultiAccount.Core.Paths;
 using ClaudeMultiAccount.Core.Profiles;
@@ -71,6 +72,16 @@ public sealed class SetupService
 
     public void Uninstall(UninstallPlan plan, bool deleteToolData)
     {
+        // Sin la herramienta, el hook de cada perfil llamaría a un cma.exe que ya no existe.
+        var document = LoadOrEmpty();
+        if (document.MessagingEnabled)
+        {
+            new MessagingSetup(_env).Remove(document.Profiles);
+        }
+        if (deleteToolData && Directory.Exists(_paths.MailboxDir))
+        {
+            Directory.Delete(_paths.MailboxDir, recursive: true);
+        }
         if (!deleteToolData)
         {
             new FileLogger(_paths.LogsDir).Info("Claude Multi-Account desinstalado; se conservan sus datos.");

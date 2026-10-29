@@ -6,6 +6,7 @@ using ClaudeMultiAccount.Core.Backup;
 using ClaudeMultiAccount.Core.Install;
 using ClaudeMultiAccount.Core.Launch;
 using ClaudeMultiAccount.Core.Logging;
+using ClaudeMultiAccount.Core.Messaging;
 using ClaudeMultiAccount.Core.Paths;
 using ClaudeMultiAccount.Core.Processes;
 using ClaudeMultiAccount.Core.Native;
@@ -38,6 +39,9 @@ public sealed class CoreProfileService : IProfileService
     private readonly LaunchService _launcher;
     private readonly ILogger _log;
     private readonly string? _userProfile;
+    private readonly Mailbox _mailbox;
+    private readonly MessagingSetup _messaging;
+    private readonly HashSet<string> _chatsTried = [];
 
     // Abrir, cerrar y guardar leen y reescriben state.json y profiles.json: se hacen de uno en uno.
     // Consultar el estado no espera por ellos (las escrituras son atómicas).
@@ -67,6 +71,8 @@ public sealed class CoreProfileService : IProfileService
         _log = new FileLogger(paths.LogsDir);
         _launcher = new LaunchService(_locator, _monitor, runtimeState, host, _env, _log);
         _userProfile = _env.Get("USERPROFILE");
+        _mailbox = new Mailbox(paths.MailboxDir);
+        _messaging = new MessagingSetup(_env);
     }
 
     public string ProfilesFileDisplayPath => Redactor.Redact(_store.FilePath, _userProfile);
@@ -152,6 +158,7 @@ public sealed class CoreProfileService : IProfileService
         {
             var profile = _catalog.CreateIsolated(edit, FolderExists);
             _log.Info($"Perfil '{profile.Name}' ({profile.Id}) creado.");
+            SyncMessagingLocked();
             return profile;
         }
     }
@@ -177,6 +184,9 @@ public sealed class CoreProfileService : IProfileService
                     _log.Warn($"No se pudieron actualizar los accesos directos del perfil {profileId}: {ex.GetType().Name}.");
                 }
             }
+
+            // La skill lleva el nombre del perfil.
+            SyncMessagingLocked();
         }
     }
 
@@ -195,6 +205,11 @@ public sealed class CoreProfileService : IProfileService
                     // Un acceso directo que sobre solo dirá que el perfil ya no existe.
                     _log.Warn($"No se pudieron borrar los accesos directos del perfil {profileId}: {ex.GetType().Name}.");
                 }
+            }
+            if (_store.Load() is { MessagingEnabled: true } document &&
+                document.Profiles.FirstOrDefault(p => p.Id == profileId) is { } removed)
+            {
+                LogProblems(_messaging.Remove([removed]));
             }
             _catalog.Remove(profileId);
             _runtimeState.Remove(profileId);
@@ -326,6 +341,113 @@ public sealed class CoreProfileService : IProfileService
             _catalog.SetShortcuts(profileId, [.. profile.Shortcuts, path]);
             _log.Info($"Acceso directo del perfil {profileId} creado en {Redactor.Redact(path, _userProfile)}.");
             return Redactor.Redact(path, _userProfile);
+        }
+    }
+
+    public bool MessagingEnabled => _store.Exists && _store.Load().MessagingEnabled;
+
+    public string MailboxFolder => _paths.MailboxDir;
+
+    public IReadOnlyList<string> SetMessaging(bool enabled)
+    {
+        lock (_writeGate)
+        {
+            var document = _store.Load();
+            if (enabled && CmaPath() is null)
+            {
+                return ["No se encuentra cma.exe junto a Claude Multi-Account. Usa la versión empaquetada o instalada."];
+            }
+            var problems = enabled
+                ? _messaging.Install(document.Profiles, CmaPath()!)
+                : _messaging.Remove(document.Profiles);
+            document.MessagingEnabled = enabled;
+            _store.Save(document);
+            _log.Info(enabled ? "Mensajes entre cuentas activados." : "Mensajes entre cuentas desactivados.");
+            LogProblems(problems);
+            return problems;
+        }
+    }
+
+    public IReadOnlyList<string> SyncMessaging()
+    {
+        lock (_writeGate)
+        {
+            return SyncMessagingLocked();
+        }
+    }
+
+    public IReadOnlyList<MailboxEntry> MessageHistory(int max) => _mailbox.AllHistory(max);
+
+    public IReadOnlyList<MailboxMessage> UnreadMessages() => _mailbox.AllUnread();
+
+    /// <summary>Un mensaje más antiguo ya no abre un chat (la herramienta estaba cerrada): llega con el hook.</summary>
+    private static readonly TimeSpan OpenChatWindow = TimeSpan.FromMinutes(15);
+
+    public IReadOnlyList<OpenedChat> OpenChatsForNewMessages(DateTime nowUtc)
+    {
+        var pending = _mailbox.AllUnread()
+            .Where(m => m.OpenChat && nowUtc - m.SentUtc < OpenChatWindow && _chatsTried.Add(m.Id))
+            .ToList();
+        if (pending.Count == 0)
+        {
+            return [];
+        }
+        var results = new List<OpenedChat>();
+        lock (_writeGate)
+        {
+            var profiles = _store.Load().Profiles;
+            foreach (var message in pending)
+            {
+                if (profiles.FirstOrDefault(p => p.Id == message.ToId) is not { } to ||
+                    !MessagingSetup.IsMessagingProfile(to) || to.NeedsLoginWizard)
+                {
+                    continue;
+                }
+                var folder = message.Folder is { } f && Directory.Exists(f) ? f : null;
+                var (link, complete) = CodeChatLink.Build(message, folder);
+                var outcome = _launcher.OpenCodeChat(to, link);
+                if (outcome.Kind == LaunchOutcomeKind.Failed)
+                {
+                    results.Add(new OpenedChat(message.Id,
+                        $"No se pudo abrir el chat en «{to.Name}» ({outcome.Message}). El mensaje le llegará cuando le escribas."));
+                    continue;
+                }
+                if (complete)
+                {
+                    _mailbox.MarkDelivered(to.Id, message.Id);
+                }
+                _log.Info($"Chat nuevo en el perfil {to.Id} para un mensaje del perfil {message.FromId}.");
+                results.Add(new OpenedChat(message.Id,
+                    $"«{message.FromName}» te abrió un chat en «{to.Name}» con su mensaje. Revísalo y envíalo cuando quieras."));
+            }
+        }
+        return results;
+    }
+
+    private IReadOnlyList<string> SyncMessagingLocked()
+    {
+        var document = _store.Load();
+        if (!document.MessagingEnabled || CmaPath() is not { } cma)
+        {
+            return [];
+        }
+        var problems = _messaging.Install(document.Profiles, cma);
+        LogProblems(problems);
+        return problems;
+    }
+
+    /// <summary>cma.exe va junto a ClaudeMA.exe en el paquete y en la instalación; el hook de cada perfil lo llama.</summary>
+    private static string? CmaPath()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "cma.exe");
+        return File.Exists(path) ? path : null;
+    }
+
+    private void LogProblems(IReadOnlyList<string> problems)
+    {
+        foreach (var problem in problems)
+        {
+            _log.Warn($"Mensajes entre cuentas: {Redactor.Redact(problem, _userProfile)}");
         }
     }
 

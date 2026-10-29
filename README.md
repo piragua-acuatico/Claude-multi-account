@@ -11,8 +11,8 @@ funciones del original (chat, Code, Cowork, conectores…) y se actualiza con é
 > La herramienta se apoya en un comportamiento no documentado de Claude Desktop que puede cambiar con cualquier
 > actualización.
 
-**Versión 1.0.0** · Windows 11 de 64 bits · Claude Desktop instalado desde la Microsoft Store o el instalador
-oficial (MSIX) · probada con Claude Desktop 3.6556.2.0.
+**Versión 1.1.0** · Windows 11 de 64 bits · Claude Desktop instalado desde la Microsoft Store o el instalador
+oficial (MSIX) · probada con Claude Desktop 4.29.0.0.
 
 ## Instalar
 
@@ -38,6 +38,30 @@ La guía completa, paso a paso, está en [docs/GUIA-DE-USO.md](docs/GUIA-DE-USO.
 - Si dos perfiles van a trabajar con Claude Code en la misma carpeta, te avisa antes y te ofrece una copia de trabajo
   de Git para que no se pisen los cambios.
 - **Copias** guarda la lista de perfiles y los ajustes de Claude Code (nunca sesiones ni credenciales).
+- **Mensajes** (opcional): tus cuentas se pasan información desde los chats de Code. Ver abajo.
+
+## Mensajes entre cuentas
+
+Actívalo en **Mensajes → Activar**. Después, en un chat de Code de una cuenta, pídelo con tus palabras:
+«dile a Claude Pro que el error está en login.js y pásale un resumen de lo que hicimos».
+
+1. Ese Claude escribe el mensaje y elige la carpeta: la del proyecto si es lo mismo, una carpeta nueva y vacía
+   si es un trabajo aparte, o te pregunta si tiene dudas.
+2. Claude Multi-Account abre en la otra cuenta **un chat de Code nuevo** en esa carpeta, con el mensaje ya
+   escrito, y te avisa con una notificación. **Lo envías tú** pulsando Enter.
+3. En ese chat puedes seguir hablando y pedirle que conteste; la respuesta llega al chat de la primera cuenta
+   cuando le escribas.
+
+Cómo funciona: al activarlo, cada perfil recibe una skill (`mensajes-entre-cuentas`) y un hook
+`UserPromptSubmit` en el `settings.json` de su configuración de Claude Code (solo se añade y se quita lo de la
+herramienta). Los mensajes son archivos en `%USERPROFILE%\.claude-multi-account\buzon`, en tu PC. El chat se
+abre con el enlace oficial `claude://code/new` de Claude Desktop, pasado directamente al Claude de esa cuenta.
+
+Límites a propósito: Claude Desktop no permite enviar el mensaje solo, y hacerlo con un script iría contra los
+términos de Anthropic (no se permite usar el servicio con bots o scripts); por eso lo envías tú. Se rechazan los
+mensajes que parecen llevar contraseñas o claves. Sirve para pasar información, no para que una cuenta ponga a
+trabajar a otra sin ti. La herramienta tiene que estar abierta (en la bandeja) para abrir el chat; si no, el
+mensaje llega cuando escribas en esa cuenta.
 
 ## Qué hace y qué no hace
 
@@ -46,7 +70,7 @@ La guía completa, paso a paso, está en [docs/GUIA-DE-USO.md](docs/GUIA-DE-USO.
 - ✅ Da a cada perfil su propia configuración y carpeta temporal de Claude Code.
 - ✅ Avisa cuando Claude Desktop se actualiza y comprueba, sin cambiar nada, que cada perfil sigue encontrando sus datos.
 - ❌ No lee, copia ni registra contraseñas, tokens ni cookies. El inicio de sesión lo haces tú en el flujo oficial de Claude.
-- ❌ No modifica ni copia archivos de Claude Desktop y no toca el protocolo `claude://`.
+- ❌ No modifica ni copia archivos de Claude Desktop y no toca el registro del protocolo `claude://`.
 - ❌ No necesita administrador, no usa la red y no envía telemetría.
 - ❌ No reparte el uso entre cuentas ni las alterna para saltarse límites.
 
@@ -94,6 +118,8 @@ cma status               # versión de Claude y procesos de cada perfil
 cma launch "Trabajo"     # abre un perfil (el primer inicio de sesión se hace en la ventana)
 cma close "Trabajo"      # --forzar si no se cierra solo (se pierde lo no guardado)
 cma diagnose             # informe sin secretos ni valores de variables
+cma mensaje enviar --de "Personal" --para "Trabajo" --archivo nota.md --carpeta C:\proyectos\web
+cma mensaje leer --de "Trabajo"
 ```
 
 `CMA_HOME` permite usar otra carpeta de datos en lugar de `%LOCALAPPDATA%\ClaudeMultiAccount` (útil para probar).

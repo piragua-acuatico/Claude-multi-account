@@ -26,6 +26,7 @@ public partial class MainWindow : Window
         DataContext = viewModel;
         Icon = _appIcon.ToImageSource();
         _tray = new TrayIconController(viewModel, _appIcon, ShowFromTray, Exit, () => IsVisible);
+        viewModel.MessageArrived += _tray.ShowMessage;
         InstallButton.Visibility = new SetupService().CanInstall ? Visibility.Visible : Visibility.Collapsed;
     }
 

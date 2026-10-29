@@ -65,6 +65,25 @@ Los chats normales (pestaña Chat) están en tu cuenta y se ven en cualquier sit
 tu PC, en las carpetas del Claude donde los creaste: un chat de Code creado en el Claude principal con la cuenta Pro
 **no aparece** en el perfil Pro, y al revés. Usa siempre el mismo perfil para cada cuenta.
 
+## Mensajes entre cuentas
+
+Tus cuentas pueden pasarse información desde los chats de Code. Actívalo una vez en **Mensajes → Activar**: se añade
+a cada perfil una skill y un aviso automático de Claude Code (tus demás ajustes no cambian). Después abre un chat de
+Code nuevo en cada perfil.
+
+1. En un chat de Code de una cuenta, pídeselo con tus palabras: «dile a Claude Pro que el error está en login.js y
+   pásale un resumen de lo que hicimos».
+2. Claude Multi-Account abre en la otra cuenta **un chat de Code nuevo**, en la misma carpeta, con el mensaje ya
+   escrito pero sin enviar, y te avisa con una notificación. Lo envías tú cuando quieras. (La herramienta tiene que
+   estar abierta, aunque sea en la bandeja; si no, el mensaje le llega a esa cuenta cuando le escribas.)
+3. En ese chat puedes seguir hablando y pedirle que conteste: «respóndele a Claude Max que…». La respuesta llega al
+   chat de Max que ya tienes abierto, cuando le escribas (un Claude no puede despertar al otro).
+
+Los mensajes se quedan en tu PC (`%USERPROFILE%\.claude-multi-account\buzon`) y su historial está en la ventana
+**Mensajes**. Nunca se envían contraseñas ni claves: si un mensaje parece tenerlas, se rechaza. Sirve para pasar
+información, no para que una cuenta ponga a trabajar a otra sin ti (repartir el uso entre cuentas va contra los
+términos de Anthropic). **Desactivar** quita la skill y el aviso de cada perfil y conserva el historial.
+
 ## Carpetas de trabajo y Git
 
 Si abres un perfil en una carpeta que ya usa otro perfil abierto, la herramienta avisa: dos Claude en la misma
@@ -91,7 +110,8 @@ clave. Restaurar muestra antes qué cambia y guarda una copia de lo que reemplaz
 En **Configuración → Aplicaciones → Aplicaciones instaladas → Claude Multi-Account → Desinstalar**. Antes sal de la
 herramienta («Salir» en su icono). Se quitan la herramienta, su entrada y los accesos directos que creó. Por defecto
 **se conservan** tu lista de perfiles y tus copias; **nunca** se tocan Claude Desktop ni las carpetas de tus perfiles
-(la ventana de desinstalar te dice dónde están, por si quieres borrarlas tú).
+(la ventana de desinstalar te dice dónde están, por si quieres borrarlas tú). Si tenías activados los mensajes entre
+cuentas, se quitan de cada perfil.
 
 ## Limitaciones que conviene saber
 

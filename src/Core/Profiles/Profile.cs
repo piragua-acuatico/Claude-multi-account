@@ -65,6 +65,10 @@ public sealed class ProfileDocument
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
     public List<Profile> Profiles { get; set; } = [];
 
+    /// <summary>Si el usuario activó los mensajes entre cuentas (hook y skill en cada perfil). Apagado no se escribe.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool MessagingEnabled { get; set; }
+
     /// <summary>Campos que esta versión no conoce: se conservan al guardar.</summary>
     [JsonExtensionData]
     public Dictionary<string, System.Text.Json.JsonElement>? Extra { get; set; }

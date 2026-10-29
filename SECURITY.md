@@ -44,6 +44,8 @@ frontera de seguridad**. Si necesitas una frontera real, usa otro usuario de Win
 | T13 | **Elevación de privilegios** | Pedir administrador sin necesidad | No requiere administrador |
 | T14 | **Actualización de Claude que rompe el aislamiento** | Cambios de comportamiento | Aviso de actualización, comprobación de compatibilidad y lista de versiones probadas; una versión no probada no se bloquea, solo se avisa |
 | T15 | **Inyección por rutas o argumentos** | Nombres de perfil con caracteres especiales | Validación; argumentos pasados como lista; nombres de carpeta con caracteres permitidos |
+| T16 | **Secretos o datos de una cuenta en los mensajes entre cuentas** | Un Claude pasa a otra cuenta algo que no debería | Solo si el usuario lo activa y lo pide; se rechazan los mensajes con algo parecido a una clave; los mensajes no salen del PC |
+| T17 | **Una cuenta trabajando por otra** | Mensajes que ponen a trabajar a la otra cuenta solos | El chat nuevo se abre con el mensaje escrito y lo envía el usuario; las respuestas solo se entregan cuando el usuario escribe |
 
 ## 4. Credenciales
 
@@ -60,6 +62,7 @@ frontera de seguridad**. Si necesitas una frontera real, usa otro usuario de Win
 | Crear carpetas bajo `%APPDATA%`, `%LOCALAPPDATA%` y `%USERPROFILE%`; crear accesos directos; lanzar `Claude.exe` | Usuario estándar |
 | Cerrar procesos, solo los del perfil que se cierra | Usuario estándar |
 | Instalarse en `%LOCALAPPDATA%\Programs` y registrar su entrada en `HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\ClaudeMultiAccount` | Usuario estándar |
+| Con los mensajes activados: añadir y quitar su hook en el `settings.json` de cada perfil y su skill en `skills\mensajes-entre-cuentas` | Usuario estándar |
 | **Nunca:** escribir en HKLM, instalar servicios, desactivar Defender o Smart App Control, tocar `WindowsApps`, escribir en `HKCU\Software\Classes\claude` | — |
 
 ## 6. Términos de uso (principios; no es asesoría legal)
@@ -83,6 +86,8 @@ frontera de seguridad**. Si necesitas una frontera real, usa otro usuario de Win
 
 ## 8. Privacidad
 
+- Los mensajes entre cuentas (si los activas) son archivos de texto en `%USERPROFILE%\.claude-multi-account\buzon`;
+  no pasan por internet salvo cuando la cuenta que los recibe los usa en un chat, como cualquier otro texto.
 - Las transcripciones y el historial de Claude Code son **texto plano** en la carpeta de configuración de cada perfil.
 - La herramienta **no usa la red** y no envía telemetría (hay una prueba automática que lo comprueba).
 - Sus propios datos (lista de perfiles, estado, copias y registros) están en `%LOCALAPPDATA%\ClaudeMultiAccount`.

@@ -35,7 +35,46 @@ public sealed class LaunchService(
     IEnvironment env,
     ILogger log)
 {
-    public LaunchOutcome Launch(Profile profile)
+    public LaunchOutcome Launch(Profile profile) => Launch(profile, extraArguments: []);
+
+    /// <summary>
+    /// Abre un chat de Code nuevo en el perfil con un enlace <c>claude://code/new</c> (ver CodeChatLink). Si el
+    /// perfil está abierto, el enlace se pasa a su Claude (el proceso nuevo se lo entrega al que ya está abierto
+    /// y termina); si está cerrado, se abre con él.
+    /// </summary>
+    public LaunchOutcome OpenCodeChat(Profile profile, string link)
+    {
+        var located = locator.Locate();
+        if (!located.Found)
+        {
+            return new LaunchOutcome(LaunchOutcomeKind.Failed, located.Error!, []);
+        }
+        var install = located.Install!;
+        var status = monitor.GetStatus(profile, install);
+        if (status.State is not (ProfileState.Running or ProfileState.Starting))
+        {
+            return Launch(profile, [link]);
+        }
+        if (env.GetDefaultUserEnvironment() is not { } baseEnvironment)
+        {
+            return new LaunchOutcome(LaunchOutcomeKind.Failed,
+                "No se pudo obtener un entorno limpio de Windows; por seguridad no se abrió el chat.", []);
+        }
+        try
+        {
+            var plan = LaunchPlanner.Plan(profile, install, baseEnvironment, env);
+            host.Activate(plan with { Arguments = [.. plan.Arguments, link] });
+            log.Info($"Chat de Code nuevo pedido al perfil '{profile.Name}' ({profile.Id}).");
+            return new LaunchOutcome(LaunchOutcomeKind.AlreadyRunning, $"Chat nuevo abierto en '{profile.Name}'.", []);
+        }
+        catch (Exception ex) when (ex is ProfileNotLaunchableException or System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            log.Warn($"No se pudo abrir un chat nuevo en '{profile.Name}' ({profile.Id}): {ex.GetType().Name}.");
+            return new LaunchOutcome(LaunchOutcomeKind.Failed, $"No se pudo abrir un chat nuevo en '{profile.Name}': {ex.Message}", []);
+        }
+    }
+
+    private LaunchOutcome Launch(Profile profile, IReadOnlyList<string> extraArguments)
     {
         // 1. La ruta del exe se resuelve en cada lanzamiento (MSIX la versiona).
         var located = locator.Locate();
@@ -68,6 +107,10 @@ public sealed class LaunchService(
         try
         {
             plan = LaunchPlanner.Plan(profile, install, baseEnvironment, env);
+            if (extraArguments.Count > 0)
+            {
+                plan = plan with { Arguments = [.. plan.Arguments, .. extraArguments] };
+            }
         }
         catch (ProfileNotLaunchableException ex)
         {
